@@ -18,4 +18,5 @@
 
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Keep MyApp to prevent ClassNotFoundException during instantiation
+-keep class com.example.android_data_transfer.MyApp { *; }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "2443972294",
+    "project_id": "datatransfer-2924a",
+    "storage_bucket": "datatransfer-2924a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:2443972294:android:bcf2b623f2c603cf1411c7",
+        "android_client_info": {
+          "package_name": "com.example.android_data_transfer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBJwevO7Hb13Lfml0JyYDToBBLuwCSOsWo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
