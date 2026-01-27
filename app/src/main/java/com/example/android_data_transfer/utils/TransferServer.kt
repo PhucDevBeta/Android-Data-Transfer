@@ -42,29 +42,35 @@ object TransferServer {
     private var server: ApplicationEngine? = null
 
     /**
-     *  MODE 1: SEND FILE (Hosting a file for others to download)
+     *  MODE 1: SEND FILE (Hosting files for others to download)
      */
-    fun startServer(fileToShare: File, port: Int = 8080, onFileDownloaded: (File) -> Unit = {}, onStarted: (String) -> Unit) {
+    fun startServer(filesToShare: List<File>, port: Int = 8080, onFileDownloaded: (File) -> Unit = {}, onStarted: (String) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             stopServer()
             val ip = getLocalIpAddress() ?: "127.0.0.1"
-            val fileUrl = "http://$ip:$port"
+            val fileUrl = "http://${ip}:$port"
 
             try {
                 server = embeddedServer(CIO, port = port) {
                     routing {
                         get("/") {
-                            val html = buildDownloadHtml(fileToShare)
+                            val html = buildDownloadHtml(filesToShare)
                             call.respondText(html, ContentType.Text.Html)
                         }
-                        get("/download/${fileToShare.name}") {
-                            call.response.header(
-                                HttpHeaders.ContentDisposition,
-                                ContentDisposition.Attachment.withParameter(ContentDisposition.Parameters.FileName, fileToShare.name).toString()
-                            )
-                            call.respondFile(fileToShare)
-                            // Notify that file was downloaded
-                            onFileDownloaded(fileToShare)
+                        get("/download/{filename}") {
+                            val filename = call.parameters["filename"]
+                            val file = filesToShare.find { it.name == filename }
+                            if (file != null) {
+                                call.response.header(
+                                    HttpHeaders.ContentDisposition,
+                                    ContentDisposition.Attachment.withParameter(ContentDisposition.Parameters.FileName, file.name).toString()
+                                )
+                                call.respondFile(file)
+                                // Notify that file was downloaded
+                                onFileDownloaded(file)
+                            } else {
+                                call.respondText("File not found", status = HttpStatusCode.NotFound)
+                            }
                         }
                     }
                 }.start(wait = false)
@@ -161,24 +167,36 @@ object TransferServer {
     /**
      * HTML GENERATORS
      */
-    private fun buildDownloadHtml(file: File): String {
-        val fileSize = formatFileSize(file.length())
+    private fun buildDownloadHtml(files: List<File>): String {
+        val filesHtml = files.joinToString("") { file ->
+            val fileSize = formatFileSize(file.length())
+            """
+                <div class="file-item">
+                    <div class="file-info">
+                        <span class="file-name">${file.name}</span>
+                        <span class="file-size">$fileSize</span>
+                    </div>
+                    <a href="/download/${file.name}" class="btn-mini">Download</a>
+                </div>
+            """.trimIndent()
+        }
+
         return """
             <!DOCTYPE html>
             <html lang="en">
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Download File</title>
+                <title>Download Files</title>
                 ${getCommonCss()}
             </head>
             <body>
                 <div class="card">
                     <div class="icon">⬇️</div>
-                    <h2>Download File</h2>
-                    <h1>${file.name}</h1>
-                    <div class="size">$fileSize</div>
-                    <a href="/download/${file.name}" class="btn">Download Now</a>
+                    <h2>Shared Files</h2>
+                    <div class="file-list">
+                        $filesHtml
+                    </div>
                 </div>
             </body>
             </html>
@@ -192,7 +210,7 @@ object TransferServer {
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Send File to Android</title>
+                <title>Send Files to Android</title>
                 ${getCommonCss()}
             </head>
             <body>
@@ -201,17 +219,23 @@ object TransferServer {
                     <h2>Send to Android</h2>
                     <form action="/upload" method="post" enctype="multipart/form-data">
                         <label for="file-upload" class="custom-file-upload">
-                            Choose File
+                            Choose Files
                         </label>
-                        <input id="file-upload" type="file" name="file" required onchange="updateFileName(this)"/>
-                        <div id="file-name" class="size">No file chosen</div>
-                        <button type="submit" class="btn">Send File</button>
+                        <input id="file-upload" type="file" name="file" required multiple onchange="updateFileName(this)"/>
+                        <div id="file-list-preview" class="file-list"></div>
+                        <button type="submit" class="btn" style="margin-top: 1rem;">Send All Files</button>
                     </form>
                 </div>
                 <script>
                     function updateFileName(input) {
-                        var fileName = input.files[0].name;
-                        document.getElementById("file-name").innerText = fileName;
+                        var preview = document.getElementById("file-list-preview");
+                        preview.innerHTML = "";
+                        for (var i = 0; i < input.files.length; i++) {
+                            var div = document.createElement("div");
+                            div.className = "file-item-preview";
+                            div.innerText = input.files[i].name;
+                            preview.appendChild(div);
+                        }
                     }
                 </script>
             </body>
@@ -251,9 +275,10 @@ object TransferServer {
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    height: 100vh;
+                    min-height: 100vh;
                     margin: 0;
                     color: #333;
+                    padding: 20px;
                 }
                 .card {
                     background: white;
@@ -261,13 +286,33 @@ object TransferServer {
                     border-radius: 20px;
                     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
                     text-align: center;
-                    width: 90%;
-                    max-width: 400px;
+                    width: 100%;
+                    max-width: 450px;
                 }
                 .icon { font-size: 64px; margin-bottom: 1rem; }
-                h1 { font-size: 1.2rem; word-break: break-word; margin: 10px 0; }
-                h2 { margin-top: 0; color: #444; }
-                .size { color: #666; margin-bottom: 2rem; font-size: 0.9rem; }
+                h1 { font-size: 1.1rem; word-break: break-word; margin: 10px 0; }
+                h2 { margin-top: 0; color: #444; margin-bottom: 1.5rem; }
+                .file-list {
+                    text-align: left;
+                    max-height: 300px;
+                    overflow-y: auto;
+                    margin-bottom: 1.5rem;
+                    border: 1px solid #eee;
+                    border-radius: 10px;
+                    padding: 10px;
+                }
+                .file-item {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 10px;
+                    border-bottom: 1px solid #f0f0f0;
+                }
+                .file-item:last-child { border-bottom: none; }
+                .file-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+                .file-name { font-weight: 500; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+                .file-size { font-size: 0.8rem; color: #888; }
+                .file-item-preview { font-size: 0.85rem; padding: 5px 0; border-bottom: 1px dashed #eee; }
                 .btn {
                     display: inline-block;
                     background: #007bff;
@@ -284,12 +329,21 @@ object TransferServer {
                     width: 100%;
                     box-sizing: border-box;
                 }
+                .btn-mini {
+                    background: #28a745;
+                    color: white;
+                    text-decoration: none;
+                    padding: 5px 12px;
+                    border-radius: 5px;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                }
                 .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 8px rgba(0,123,255,0.4); }
                 input[type="file"] { display: none; }
                 .custom-file-upload {
                     border: 2px dashed #ccc;
                     display: inline-block;
-                    padding: 12px 24px;
+                    padding: 20px;
                     cursor: pointer;
                     border-radius: 10px;
                     margin-bottom: 15px;
@@ -297,6 +351,7 @@ object TransferServer {
                     box-sizing: border-box;
                     color: #555;
                     font-weight: 500;
+                    background: #fafafa;
                 }
                 .custom-file-upload:hover { border-color: #007bff; color: #007bff; background: #f0f8ff; }
             </style>

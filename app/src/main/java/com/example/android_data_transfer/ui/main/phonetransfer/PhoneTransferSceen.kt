@@ -77,16 +77,17 @@ fun PhoneTransferSceen(
     val phoneTransferViewModel: PhoneTransferViewModel = hiltViewModel()
     val scrollable = rememberScrollState()
     val context = LocalContext.current
-    var selectedFile by remember { mutableStateOf<File?>(null) }
+    var selectedFiles by remember { mutableStateOf<List<File>>(emptyList()) }
     var shareUrl by remember { mutableStateOf("") }
     var showSheet by remember { mutableStateOf(false) }
     var isQrMode by remember { mutableStateOf(false) }
     var isReceiveMode by remember { mutableStateOf(false) }
     var qrBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    
     val filePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        uri?.let { mkUri ->
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        val newFiles = uris.mapNotNull { mkUri ->
             // Try to get the real file name with extension
             var fileName = "shared_file_${System.currentTimeMillis()}"
             context.contentResolver.query(mkUri, null, null, null, null)?.use { cursor ->
@@ -100,13 +101,18 @@ fun PhoneTransferSceen(
             }
             // Create file in cache with original name to preserve extension
             val file = File(context.cacheDir, fileName)
-            context.contentResolver.openInputStream(mkUri)?.use { input ->
-                FileOutputStream(file).use { output ->
-                    input.copyTo(output)
+            try {
+                context.contentResolver.openInputStream(mkUri)?.use { input ->
+                    FileOutputStream(file).use { output ->
+                        input.copyTo(output)
+                    }
                 }
+                file
+            } catch (e: Exception) {
+                null
             }
-            selectedFile = file
         }
+        selectedFiles = selectedFiles + newFiles
     }
 
     val sheetState = rememberModalBottomSheetState()
@@ -336,12 +342,13 @@ fun PhoneTransferSceen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // Upload Area (Glassmorphism look)
+            val hasFiles = selectedFiles.isNotEmpty()
             val dashColor =
-                if (selectedFile != null) Color(0xFF38BDF8) else Color.White.copy(alpha = 0.3f)
+                if (hasFiles) Color(0xFF38BDF8) else Color.White.copy(alpha = 0.3f)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp)
+                    .height(140.dp)
                     .clip(RoundedCornerShape(24.dp))
                     .background(Color.White.copy(alpha = 0.05f))
                     .drawBehind {
@@ -363,9 +370,9 @@ fun PhoneTransferSceen(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(64.dp)
+                            .size(48.dp)
                             .background(
-                                if (selectedFile != null) Color(0xFF38BDF8).copy(alpha = 0.2f)
+                                if (hasFiles) Color(0xFF38BDF8).copy(alpha = 0.2f)
                                 else Color.White.copy(alpha = 0.1f),
                                 CircleShape
                             ),
@@ -374,34 +381,62 @@ fun PhoneTransferSceen(
                         Image(
                             painter = painterResource(R.drawable.ic_upload),
                             contentDescription = "Upload",
-                            modifier = Modifier.size(32.dp),
+                            modifier = Modifier.size(24.dp),
                             colorFilter = ColorFilter.tint(
-                                if (selectedFile != null) Color(0xFF38BDF8) else Color.White
+                                if (hasFiles) Color(0xFF38BDF8) else Color.White
                             )
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
-                        text = selectedFile?.name ?: "Chọn file để gửi",
+                        text = if (hasFiles) "Chọn thêm file (${selectedFiles.size} đã chọn)" else "Chọn file để gửi",
                         style = TextStyleCommon(
-                            fontSize = 17.sp,
+                            fontSize = 16.sp,
                             fontFamily = fontLexendBold,
-                            color = if (selectedFile != null) Color(0xFF38BDF8) else Color.White
+                            color = if (hasFiles) Color(0xFF38BDF8) else Color.White
                         ),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Center
                     )
+                }
+            }
 
-                    if (selectedFile == null) {
-                        Text(
-                            text = "Hỗ trợ tất cả định dạng",
-                            style = TextStyleCommon(
-                                fontSize = 12.sp,
-                                color = Color.White.copy(alpha = 0.5f)
-                            )
+            if (selectedFiles.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Danh sách file",
+                        style = TextStyleCommon(
+                            fontSize = 16.sp,
+                            fontFamily = fontLexendBold,
+                            color = Color.White.copy(alpha = 0.8f)
+                        )
+                    )
+                    Text(
+                        text = "Xóa hết",
+                        style = TextStyleCommon(
+                            fontSize = 13.sp,
+                            color = Color(0xFFF87171)
+                        ),
+                        modifier = Modifier.clickableOnce { selectedFiles = emptyList() }
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    selectedFiles.forEach { file ->
+                        SelectedFileItem(
+                            file = file,
+                            onRemove = { selectedFiles = selectedFiles - file }
                         )
                     }
                 }
@@ -420,12 +455,12 @@ fun PhoneTransferSceen(
                     title = "Wifi",
                     subtitle = "Gửi qua IP",
                     iconRes = R.drawable.ic_copy,
-                    enabled = selectedFile != null,
+                    enabled = selectedFiles.isNotEmpty(),
                     primaryColor = Color(0xFF818CF8)
                 ) {
-                    selectedFile?.let { file ->
+                    if (selectedFiles.isNotEmpty()) {
                         TransferServer.startServer(
-                            fileToShare = file,
+                            filesToShare = selectedFiles,
                             onFileDownloaded = { downloadedFile ->
                                 phoneTransferViewModel.saveHistory(
                                     fileName = downloadedFile.name,
@@ -447,13 +482,13 @@ fun PhoneTransferSceen(
                     modifier = Modifier.weight(1f),
                     title = "Mã QR",
                     subtitle = "Quét cực nhanh",
-                    iconRes = R.drawable.ic_copy, // Replace with appropriate icon if available
-                    enabled = selectedFile != null,
+                    iconRes = R.drawable.ic_copy,
+                    enabled = selectedFiles.isNotEmpty(),
                     primaryColor = Color(0xFF2DD4BF)
                 ) {
-                    selectedFile?.let { file ->
+                    if (selectedFiles.isNotEmpty()) {
                         TransferServer.startServer(
-                            fileToShare = file,
+                            filesToShare = selectedFiles,
                             onFileDownloaded = { downloadedFile ->
                                 phoneTransferViewModel.saveHistory(
                                     fileName = downloadedFile.name,
@@ -618,6 +653,100 @@ fun PhoneTransferSceen(
             Spacer(modifier = Modifier.height(30.dp))
         }
     }
+}
+
+@Composable
+fun SelectedFileItem(
+    file: File,
+    onRemove: () -> Unit
+) {
+    val category = getFileCategory(file.name)
+    
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White.copy(alpha = 0.05f))
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(category.color.copy(alpha = 0.2f), RoundedCornerShape(10.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            // Using first letter of category as a placeholder icon since we don't have enough icons
+            Text(
+                text = category.name.take(1),
+                style = TextStyleCommon(
+                    fontSize = 18.sp,
+                    fontFamily = fontLexendBold,
+                    color = category.color
+                )
+            )
+        }
+        
+        Spacer(modifier = Modifier.width(12.dp))
+        
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = file.name,
+                style = TextStyleCommon(fontSize = 14.sp, color = Color.White),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Row {
+                Text(
+                    text = category.name,
+                    style = TextStyleCommon(fontSize = 11.sp, color = category.color)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = formatFileSize(file.length()),
+                    style = TextStyleCommon(fontSize = 11.sp, color = Color.White.copy(alpha = 0.4f))
+                )
+            }
+        }
+        
+        Image(
+            painter = painterResource(R.drawable.ic_copy), // Using ic_copy as a remove icon placeholder
+            contentDescription = "Remove",
+            modifier = Modifier
+                .size(20.dp)
+                .rotate(45f) // Rotate it to look like an X
+                .clickableOnce { onRemove() },
+            colorFilter = ColorFilter.tint(Color.White.copy(alpha = 0.3f))
+        )
+    }
+}
+
+data class FileCategory(
+    val name: String,
+    val color: Color
+)
+
+fun getFileCategory(fileName: String): FileCategory {
+    val ext = fileName.substringAfterLast(".", "").lowercase()
+    return when (ext) {
+        "jpg", "jpeg", "png", "gif", "webp" -> FileCategory("Image", Color(0xFFFB923C))
+        "mp4", "mkv", "mov", "avi" -> FileCategory("Video", Color(0xFFF87171))
+        "mp3", "wav", "ogg", "m4a" -> FileCategory("Audio", Color(0xFF818CF8))
+        "pdf" -> FileCategory("PDF", Color(0xFFEF4444))
+        "doc", "docx" -> FileCategory("Word", Color(0xFF3B82F6))
+        "xls", "xlsx" -> FileCategory("Excel", Color(0xFF22C55E))
+        "ppt", "pptx" -> FileCategory("Powerpoint", Color(0xFFF97316))
+        "zip", "rar", "7z" -> FileCategory("Archive", Color(0xFFA855F7))
+        "txt" -> FileCategory("Text", Color(0xFF94A3B8))
+        else -> FileCategory("File", Color(0xFF94A3B8))
+    }
+}
+
+fun formatFileSize(size: Long): String {
+    if (size <= 0) return "0 B"
+    val units = arrayOf("B", "KB", "MB", "GB", "TB")
+    val digitGroups = (Math.log10(size.toDouble()) / Math.log10(1024.0)).toInt()
+    return java.text.DecimalFormat("#,##0.#").format(size / Math.pow(1024.0, digitGroups.toDouble())) + " " + units[digitGroups]
 }
 
 @Composable
