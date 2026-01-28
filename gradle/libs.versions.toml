@@ -21,6 +21,8 @@ roomCommonJvm = "2.8.4"
 foundationLayout = "1.10.1"
 uiTextGoogleFontsVersion = "1.10.1"
 material3 = "1.4.0"
+codeScanner = "16.1.0"
+
 
 
 [libraries]
@@ -51,6 +53,8 @@ androidx-room-common-jvm = { group = "androidx.room", name = "room-common-jvm", 
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
 androidx-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version.ref = "uiTextGoogleFontsVersion" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+play-services-code-scanner = { group = "com.google.android.gms", name = "play-services-code-scanner", version.ref = "codeScanner" }
+
 
 
 [plugins]

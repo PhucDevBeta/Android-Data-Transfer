@@ -1,6 +1,8 @@
 package com.example.android_data_transfer.ui.main.phonetransfer
 
 import android.graphics.Bitmap
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.OpenableColumns
@@ -8,6 +10,9 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -327,11 +332,35 @@ fun PhoneTransferSceen(
                     modifier = Modifier
                         .size(45.dp)
                         .background(Color.White.copy(alpha = 0.1f), CircleShape)
-                        .border(1.dp, Color.White.copy(alpha = 0.2f), CircleShape),
+                        .border(1.dp, Color.White.copy(alpha = 0.2f), CircleShape)
+                        .clickableOnce {
+                            val options = GmsBarcodeScannerOptions.Builder()
+                                .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
+                                .enableAutoZoom()
+                                .build()
+
+                            val scanner = GmsBarcodeScanning.getClient(context, options)
+
+                            scanner.startScan()
+                                .addOnSuccessListener { barcode ->
+                                    val rawValue = barcode.rawValue
+                                    if (!rawValue.isNullOrEmpty()) {
+                                        try {
+                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(rawValue))
+                                            context.startActivity(intent)
+                                        } catch (e: Exception) {
+                                            Toast.makeText(context, "Link không hợp lệ", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                }
+                                .addOnFailureListener {
+                                    Toast.makeText(context, "Scan thất bại", Toast.LENGTH_SHORT).show()
+                                }
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
-                        painter = painterResource(R.drawable.ic_upload),
+                        painter = painterResource(R.drawable.ic_scan),
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
                         colorFilter = ColorFilter.tint(Color.White)

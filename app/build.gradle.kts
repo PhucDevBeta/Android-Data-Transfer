@@ -100,4 +100,6 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
+    // Code Scanner
+    implementation(libs.play.services.code.scanner)
 }
