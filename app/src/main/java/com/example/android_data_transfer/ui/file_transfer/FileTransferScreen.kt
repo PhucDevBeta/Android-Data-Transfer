@@ -50,9 +50,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.android_data_transfer.R
 import com.example.android_data_transfer.component.topbar_common.TopBarCommon
+import com.example.android_data_transfer.models.getFileCategory
 import com.example.android_data_transfer.models.local.entity.TransferHistory
-import com.example.android_data_transfer.ui.phonetransfer.SelectedFileItem
-import com.example.android_data_transfer.ui.phonetransfer.TransferMethodButton
+import com.example.android_data_transfer.ui.main.compoents.SelectedFileItem
+import com.example.android_data_transfer.ui.main.compoents.TransferMethodButton
 import com.example.android_data_transfer.ui.theme.TextStyleCommon
 import com.example.android_data_transfer.ui.theme.fontLexendBold
 import com.example.android_data_transfer.utils.TransferServer
@@ -61,7 +62,6 @@ import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
-import com.example.android_data_transfer.ui.phonetransfer.getFileCategory
 
 @RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(ExperimentalMaterial3Api::class)
