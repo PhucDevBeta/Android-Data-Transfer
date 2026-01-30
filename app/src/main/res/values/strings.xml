@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Android-Data-Transfer</string>
+    <string name="photos_transfer">Photos Transfer</string>
+    <string name="audio_transfer">Audio Transfer</string>
+    <string name="files_transfer">Files Transfer</string>
+    <string name="videos_transfer">Videos Transfer</string>
 </resources>
