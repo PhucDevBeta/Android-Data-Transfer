@@ -1,3 +1,6 @@
 - viết tiếp function Phone clone để đồng bộ dữ liệu giữa 2 thiết bị
 - khi chọn ảnh hay file thay vì hiển thị danh sách ảnh từ hệ thống -> tạo màn hình hiển thị riêng trong app( gắn ads )
 - lịch sử lưu tên file vào room thì lưu vào đường dẫn trong thiết bị để truy vấn nhanh và đỡ tốn dung lượng
+
+
+- lịch sử lưu tên file vào room thì lưu vào đường dẫn trong thiết bị để truy vấn nhanh và đỡ tốn dung lượng
