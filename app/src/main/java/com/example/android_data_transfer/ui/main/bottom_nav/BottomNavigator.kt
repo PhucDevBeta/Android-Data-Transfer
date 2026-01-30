@@ -22,7 +22,7 @@ import com.example.android_data_transfer.R
 @Composable
 fun BottomNavigator(
     modifier: Modifier = Modifier,
-    typeSelected: BottomNav = BottomNav.PHONETRANSFER,
+    typeSelected: BottomNav = BottomNav.HOME,
     onClick: (BottomNav) -> Unit,
 ) {
     Box(
@@ -44,11 +44,11 @@ fun BottomNavigator(
                         .clip(shape = CircleShape)
                         .weight(1f)
                         .fillMaxHeight(),
-                    icon = if (typeSelected == BottomNav.PHONETRANSFER) R.drawable.ic_launcher_foreground else R.drawable.ic_launcher_background,
-                    title = "Phone Transfer",
-                    selected = typeSelected == BottomNav.PHONETRANSFER,
+                    icon = if (typeSelected == BottomNav.HOME) R.drawable.ic_launcher_foreground else R.drawable.ic_launcher_background,
+                    title = "Home",
+                    selected = typeSelected == BottomNav.HOME,
                     onClick = {
-                        onClick(BottomNav.PHONETRANSFER)
+                        onClick(BottomNav.HOME)
                     }
                 )
 
@@ -64,30 +64,16 @@ fun BottomNavigator(
                         onClick(BottomNav.PHONECLONE)
                     }
                 )
-
                 ItemBottomNav(
                     modifier = Modifier
                         .clip(shape = CircleShape)
                         .weight(1f)
                         .fillMaxHeight(),
-                    icon = if (typeSelected == BottomNav.WHATSAPPTRANSFER) R.drawable.ic_launcher_foreground else R.drawable.ic_launcher_background,
-                    title = "WhatsApp Transfer",
-                    selected = typeSelected == BottomNav.WHATSAPPTRANSFER,
+                    icon = if (typeSelected == BottomNav.SETTING) R.drawable.ic_launcher_foreground else R.drawable.ic_launcher_background,
+                    title = "Setting",
+                    selected = typeSelected == BottomNav.SETTING,
                     onClick = {
-                        onClick(BottomNav.WHATSAPPTRANSFER)
-                    }
-                )
-
-                ItemBottomNav(
-                    modifier = Modifier
-                        .clip(shape = CircleShape)
-                        .weight(1f)
-                        .fillMaxHeight(),
-                    icon = if (typeSelected == BottomNav.HISTORY) R.drawable.ic_launcher_foreground else R.drawable.ic_launcher_background,
-                    title = "History",
-                    selected = typeSelected == BottomNav.HISTORY,
-                    onClick = {
-                        onClick(BottomNav.HISTORY)
+                        onClick(BottomNav.SETTING)
                     }
                 )
             }
@@ -100,12 +86,12 @@ fun BottomNavigator(
 @Preview
 fun BottomNavP() {
     BottomNavigator(
-        typeSelected = BottomNav.PHONETRANSFER,
+        typeSelected = BottomNav.HOME,
         onClick = {}
     )
 }
 
 @Keep
 enum class BottomNav {
-    PHONETRANSFER, PHONECLONE, WHATSAPPTRANSFER, HISTORY
+    HOME, PHONECLONE, SETTING
 }

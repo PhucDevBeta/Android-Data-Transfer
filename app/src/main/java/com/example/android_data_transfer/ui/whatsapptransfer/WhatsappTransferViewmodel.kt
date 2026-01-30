@@ -1,4 +1,4 @@
-package com.example.android_data_transfer.ui.main.whatsapptransfer
+package com.example.android_data_transfer.ui.whatsapptransfer
 
 import androidx.lifecycle.ViewModel
 import com.example.android_data_transfer.utils.nav.AppNav

@@ -1,4 +1,4 @@
-package com.example.android_data_transfer.ui.main.whatsapptransfer
+package com.example.android_data_transfer.ui.whatsapptransfer
 
 import android.graphics.Bitmap
 import android.provider.DocumentsContract
@@ -52,8 +52,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.android_data_transfer.R
-import com.example.android_data_transfer.ui.main.phonetransfer.SelectedFileItem
-import com.example.android_data_transfer.ui.main.phonetransfer.TransferMethodButton
+import com.example.android_data_transfer.ui.phonetransfer.SelectedFileItem
+import com.example.android_data_transfer.ui.phonetransfer.TransferMethodButton
 import com.example.android_data_transfer.ui.theme.TextStyleCommon
 import com.example.android_data_transfer.ui.theme.fontLexendBold
 import com.example.android_data_transfer.utils.TransferServer

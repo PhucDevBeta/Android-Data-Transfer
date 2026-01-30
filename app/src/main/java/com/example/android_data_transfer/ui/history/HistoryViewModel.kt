@@ -1,4 +1,4 @@
-package com.example.android_data_transfer.ui.main.history
+package com.example.android_data_transfer.ui.history
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

@@ -1,4 +1,4 @@
-package com.example.android_data_transfer.ui.main.phonetransfer
+package com.example.android_data_transfer.ui.phonetransfer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

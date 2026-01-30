@@ -14,7 +14,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.android_data_transfer.AppMainActivity
 import com.example.android_data_transfer.AppMainViewModel
+import com.example.android_data_transfer.ui.audio_transfer.AudioTransferScreen
+import com.example.android_data_transfer.ui.file_transfer.FileTransferScreen
 import com.example.android_data_transfer.ui.main.MainScreen
+import com.example.android_data_transfer.ui.photo_transfer.PhotoTransferScreen
+import com.example.android_data_transfer.ui.video_transfer.VideoTransferScreen
 
 @RequiresApi(Build.VERSION_CODES.Q)
 @Composable
@@ -65,6 +69,18 @@ fun AppNavHost(
             MainScreen(
                 currentIndexTab = selectedIndex,
             )
+        }
+        composable<PhotoTransferRoute> {
+            PhotoTransferScreen()
+        }
+        composable<VideoTransferRoute> {
+            VideoTransferScreen()
+        }
+        composable<FilesTransferRoute> {
+            FileTransferScreen()
+        }
+        composable<AudioTransferRoute> {
+            AudioTransferScreen()
         }
     }
 }

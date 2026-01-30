@@ -26,10 +26,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.example.android_data_transfer.ui.main.bottom_nav.BottomNav
 import com.example.android_data_transfer.ui.main.bottom_nav.BottomNavigator
-import com.example.android_data_transfer.ui.main.history.HistoryScreen
+import com.example.android_data_transfer.ui.main.home.HomeScreen
 import com.example.android_data_transfer.ui.main.phoneclone.PhoneCloneScreen
-import com.example.android_data_transfer.ui.main.phonetransfer.PhoneTransferSceen
-import com.example.android_data_transfer.ui.main.whatsapptransfer.WhatsAppTransferScreen
+import com.example.android_data_transfer.ui.main.settings.SettingScreen
 
 @RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(ExperimentalGlideComposeApi::class)
@@ -41,11 +40,10 @@ fun MainScreen(
     val pagerState = rememberPagerState(initialPage = currentIndexTab) { 4 }
 
     val selectedTab = when (currentIndexTab) {
-        0 -> BottomNav.PHONETRANSFER
+        0 -> BottomNav.HOME
         1 -> BottomNav.PHONECLONE
-        2 -> BottomNav.WHATSAPPTRANSFER
-        3 -> BottomNav.HISTORY
-        else -> BottomNav.PHONETRANSFER
+        3 -> BottomNav.SETTING
+        else -> BottomNav.HOME
     }
 
     Box(
@@ -68,10 +66,9 @@ fun MainScreen(
             userScrollEnabled = false
         ) { page ->
             when (page) {
-                0 -> PhoneTransferSceen()
+                0 -> HomeScreen()
                 1 -> PhoneCloneScreen()
-                2 -> WhatsAppTransferScreen()
-                3 -> HistoryScreen()
+                2 -> SettingScreen()
             }
         }
         Column(
@@ -84,10 +81,9 @@ fun MainScreen(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = { tab ->
                     val targetPage = when (tab) {
-                        BottomNav.PHONETRANSFER -> 0
+                        BottomNav.HOME -> 0
                         BottomNav.PHONECLONE -> 1
-                        BottomNav.WHATSAPPTRANSFER -> 2
-                        BottomNav.HISTORY -> 3
+                        BottomNav.SETTING -> 2
                     }
                     mainViewModel.selectTab(targetPage)
                 },

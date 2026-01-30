@@ -1,4 +1,4 @@
-package com.example.android_data_transfer.ui.main.phonetransfer
+package com.example.android_data_transfer.ui.phonetransfer
 
 import android.graphics.Bitmap
 import android.content.Intent
@@ -73,6 +73,7 @@ import com.example.android_data_transfer.utils.TransferServer
 import com.example.android_data_transfer.utils.system.clickableOnce
 import java.io.File
 import java.io.FileOutputStream
+import java.text.DecimalFormat
 
 @RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -775,7 +776,7 @@ fun formatFileSize(size: Long): String {
     if (size <= 0) return "0 B"
     val units = arrayOf("B", "KB", "MB", "GB", "TB")
     val digitGroups = (Math.log10(size.toDouble()) / Math.log10(1024.0)).toInt()
-    return java.text.DecimalFormat("#,##0.#").format(size / Math.pow(1024.0, digitGroups.toDouble())) + " " + units[digitGroups]
+    return DecimalFormat("#,##0.#").format(size / Math.pow(1024.0, digitGroups.toDouble())) + " " + units[digitGroups]
 }
 
 @Composable
